@@ -114,19 +114,9 @@ All external integrations are replaced with placeholders.
 
 - n8n (workflow automation)
 - Webhooks (event ingestion)
-- Google Sheets (logging - demo)
-- Email (alerting - demo)
+- Google Sheets (logging)
+- Email (alerting)
 - AI API (simulated)
-
----
-
-## 🚀 Future Improvements
-
-- Duplicate alert prevention
-- Dynamic threshold configuration
-- Database integration (PostgreSQL / BigQuery)
-- Dashboard visualization (Power BI / Looker)
-- Real AI model integration
 
 ---
 
