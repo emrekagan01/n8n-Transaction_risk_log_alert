@@ -1,0 +1,6 @@
+{
+  "transaction_id": "TX1001",
+  "amount": 15000,
+  "currency": "USD",
+  "description": "Test transaction"
+}

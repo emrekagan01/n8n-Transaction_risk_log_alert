@@ -1,0 +1,140 @@
+{
+  "name": "transaction-risk-monitoring-public",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "transaction-risk-check",
+        "responseMode": "lastNode"
+      },
+      "type": "n8n-nodes-base.webhook",
+      "name": "Webhook Input"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "transaction_id",
+              "value": "={{$json.body.transaction_id}}"
+            },
+            {
+              "name": "currency",
+              "value": "={{$json.body.currency}}"
+            },
+            {
+              "name": "amount",
+              "value": "={{$json.body.amount}}"
+            },
+            {
+              "name": "description",
+              "value": "={{$json.body.description}}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.set",
+      "name": "Normalize Transaction Data"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "leftValue": "={{Number($json.amount)}}",
+              "rightValue": 10000,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "name": "Detect High-Value Transaction"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.example.com/analyze",
+        "jsonBody": "{\"risk_level\":\"high\",\"short_reason\":\"High transaction amount\",\"recommended_action\":\"manual_review\"}"
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "name": "AI Risk Analysis (Demo)"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "transaction_id",
+              "value": "={{$node[\"Normalize Transaction Data\"].json.transaction_id}}"
+            },
+            {
+              "name": "amount",
+              "value": "={{$node[\"Normalize Transaction Data\"].json.amount}}"
+            },
+            {
+              "name": "currency",
+              "value": "={{$node[\"Normalize Transaction Data\"].json.currency}}"
+            },
+            {
+              "name": "description",
+              "value": "={{$node[\"Normalize Transaction Data\"].json.description}}"
+            },
+            {
+              "name": "risk_level",
+              "value": "high"
+            },
+            {
+              "name": "short_reason",
+              "value": "Threshold exceeded"
+            },
+            {
+              "name": "recommended_action",
+              "value": "manual_review"
+            },
+            {
+              "name": "review_trigger",
+              "value": "threshold_exceeded"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.set",
+      "name": "Prepare Risk Assessment Output"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": "demo_spreadsheet_id",
+        "sheetName": "risk_logs",
+        "columns": {
+          "value": {
+            "timestamp": "={{new Date().toISOString()}}",
+            "transaction_id": "={{$json.transaction_id}}",
+            "amount": "={{$json.amount}}",
+            "currency": "={{$json.currency}}",
+            "risk_level": "={{$json.risk_level}}",
+            "short_reason": "={{$json.short_reason}}",
+            "recommended_action": "={{$json.recommended_action}}",
+            "review_trigger": "={{$json.review_trigger}}"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "name": "Append Risk Log"
+    },
+    {
+      "parameters": {
+        "fromEmail": "alert@example.com",
+        "toEmail": "recipient@example.com",
+        "subject": "\ud83d\udea8 Risk Alert: High Value Transaction Detected",
+        "text": "A high-risk transaction has been detected.\nTransaction ID: {{$json.transaction_id}}\nAmount: {{$json.amount}}\nCurrency: {{$json.currency}}\nRisk Level: {{$json.risk_level}}\nReason: {{$json.short_reason}}\nRecommended Action: {{$json.recommended_action}}\n"
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "name": "Send Risk Alert"
+    }
+  ]
+}
